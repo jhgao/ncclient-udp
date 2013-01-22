@@ -2,6 +2,7 @@
 #define CLIENTUDPWINDOW_H
 
 #include <QMainWindow>
+#include "gui/rcvprogressscene.h"
 
 namespace Ui {
 class ClientUDPWindow;

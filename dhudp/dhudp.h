@@ -1,6 +1,8 @@
 #ifndef DHUDP_H
 #define DHUDP_H
 
+#include <QTcpSocket>
+#include <QUdpSocket>
 #include "datahandler.h"
 #include "protocol/protocoltypes.h"
 
@@ -18,8 +20,10 @@ signals:
 public slots:
     void startFetch();
     void abortWorks();
-    
+private:
+    QTcpSocket* i_tcpCmdSkt;
+    QUdpSocket* i_udpDataSkt;
 };
-}
+}//namespace nProtocUDP
 
 #endif // DHUDP_H

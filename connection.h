@@ -29,7 +29,7 @@ private slots:
     void onControlSktReadyRead();
     void processCMD(const Packet& p);
 
-    void writeOutCMD(eControl_CMD cmd,
+    void writeOutCMD(quint16 cmd,
                      const QByteArray arg = QByteArray());
     void onConnected();
 

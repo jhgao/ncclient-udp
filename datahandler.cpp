@@ -6,7 +6,7 @@ DataHandler::DataHandler(QObject *parent) :
 }
 
 
-void DataHandler::sigWriteOutCmd(eControl_CMD cmd, const QByteArray arg)
+void DataHandler::sigWriteOutCmd(quint16 cmd, const QByteArray arg)
 {
     emit sig_writeOutCmd(cmd,arg);
 }

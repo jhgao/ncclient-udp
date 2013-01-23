@@ -15,7 +15,7 @@ public:
     /* used when connect to Server */
     virtual QByteArray declareArg() = 0;
 signals:
-    void sig_writeOutCmd(eControl_CMD,QByteArray);
+    void sig_writeOutCmd(quint16,QByteArray);
 
     void sig_progressPercent(uint);
     void sig_gotBlockSN(quint32 sn);
@@ -26,7 +26,7 @@ public slots:
     virtual void abortWorks() = 0;
 protected:
     /* signal parent object to write out CMD */
-    void sigWriteOutCmd(eControl_CMD, const QByteArray);
+    void sigWriteOutCmd(quint16, const QByteArray);
 };
 
 #endif // DATAHANDLER_H

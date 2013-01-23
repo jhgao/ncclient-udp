@@ -83,7 +83,7 @@ void Connection::processCMD(const Packet &p)
     }
 }
 
-void Connection::writeOutCMD(eControl_CMD cmd, const QByteArray arg)
+void Connection::writeOutCMD(quint16 cmd, const QByteArray arg)
 {
     if(!this->isWritable()) return;
 

@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     gui/rcvprogressscene.cpp \
     protocol/rawblock.cpp \
     protocol/packet.cpp \
-    dhudp/dhudp.cpp
+    dhudp/dhudp.cpp \
+    dhudp/dhudpdecoder.cpp
 
 HEADERS  += clientudpwindow.h \
     datahandler.h \
@@ -34,6 +35,7 @@ HEADERS  += clientudpwindow.h \
     protocol/ports_define.h \
     protocol/packet.h \
     protocol/cmd_define.h \
-    dhudp/dhudp.h
+    dhudp/dhudp.h \
+    dhudp/dhudpdecoder.h
 
 FORMS    += clientudpwindow.ui

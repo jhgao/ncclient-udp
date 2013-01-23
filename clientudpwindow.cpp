@@ -47,7 +47,7 @@ ClientUDPWindow::ClientUDPWindow(QWidget *parent) :
             this, SLOT(onDisconnected()));
 
     connect(this, SIGNAL(sig_onConAbortCmd()),
-            m_con, SLOT(slot_abort()));
+            m_con, SLOT(slot_abortWorks()));
     connect(this, SIGNAL(sig_onConConnectToHostCmd(QString,quint16)),
             m_con, SLOT(slot_connectToHost(QString,quint16)));
 
@@ -59,6 +59,8 @@ ClientUDPWindow::ClientUDPWindow(QWidget *parent) :
 
 ClientUDPWindow::~ClientUDPWindow()
 {
+    m_conThread->quit();
+    m_conThread->wait(20);
     delete ui;
 }
 

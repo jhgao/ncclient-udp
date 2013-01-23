@@ -22,7 +22,7 @@ signals:
     void sig_gotBlockSN(quint32 sn);
 
 public slots:
-    void slot_abort();
+    void slot_abortWorks();
     void slot_connectToHost(QString, quint16);
 
 private slots:

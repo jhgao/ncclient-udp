@@ -30,16 +30,22 @@ signals:
 public slots:
     void startFetch();
     void abortWorks();
+
 private slots:
     void onIncomingTcpCmdConnection();
+    void onCmdSktConnected();
     void onCmdSktReadyRead();
     void onCmdSktDisconnected();
+
+    //
+    void readDatagram();
 private:
     void writeOutCmd(quint16, const QByteArray& = QByteArray());
     void processCMD(const Packet& p);
     QString psCmdDbg(QString cmd, QString arg = QString());
     void processData(const Packet& p);
 
+    bool startListenData();
     QTcpServer* i_tcpCmdServer;
     QString i_ipAddress;    //local ip
     QTcpSocket* i_tcpCmdSkt;

@@ -1,11 +1,16 @@
 #include "dhudp.h"
+
 namespace nProtocUDP{
+
 DHudp::DHudp(QObject *parent) :
     DataHandler(parent),i_tcpCmdServer(0),i_tcpCmdSkt(0),
     i_cmd_counter(0),i_cmdPacketSize(0),i_dataPacketSize(0),
-    i_decoder(0)
+    i_decoder(0),i_udpDataSkt(0)
 {
     qDebug() << "DHudp::DHudp()";
+
+    i_udpDataSkt = new QUdpSocket(this);
+
     i_tcpCmdServer = new QTcpServer(this);
     if (!i_tcpCmdServer->listen(QHostAddress::Any,0)) {
         qDebug() << "DHudp listen cmd port failed";
@@ -33,7 +38,7 @@ DHudp::DHudp(QObject *parent) :
 
     //logic
     connect(this, SIGNAL(sig_cmdConnected()),
-            this, SLOT(startFetch()));
+            this, SLOT(onCmdSktConnected()));
 }
 
 eProtocTypes DHudp::type() const
@@ -53,6 +58,16 @@ QByteArray DHudp::declareArg()
 
 void DHudp::startFetch()
 {
+    if(this->startListenData()){
+        qDebug() << "DHudp::startFetch()";
+        QByteArray arg;
+        QDataStream out(&arg, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_4_8);
+        out << i_ipAddress;
+        out << (quint16) i_udpDataSkt->localPort();
+
+        this->writeOutCmd(CON_START,arg);
+    }
 }
 
 void DHudp::abortWorks()
@@ -103,6 +118,27 @@ void DHudp::onCmdSktDisconnected()
     qDebug() << "DHudp::onCmdSktDisconnected()";
 }
 
+void DHudp::readDatagram()
+{
+    qDebug() << "TODO: DHudp::readDatagram()";
+
+
+    while (i_udpDataSkt->hasPendingDatagrams()) {
+
+        QByteArray i_inDatagram;
+        QHostAddress sender;
+        quint16 senderPort;
+
+        i_inDatagram.resize(i_udpDataSkt->pendingDatagramSize());
+        i_udpDataSkt->readDatagram(i_inDatagram.data(),
+                                      i_inDatagram.size(),
+                                      &sender,
+                                      &senderPort);
+
+        qDebug() << "\t" << QString(i_inDatagram);
+    }
+}
+
 void DHudp::onIncomingTcpCmdConnection()
 {
     if( i_tcpCmdServer->hasPendingConnections()){
@@ -116,6 +152,12 @@ void DHudp::onIncomingTcpCmdConnection()
 
         emit sig_cmdConnected();
     }
+}
+
+void DHudp::onCmdSktConnected()
+{
+    qDebug() << "DHudp::onCmdSktConnected()";
+    startFetch();
 }
 
 void DHudp::writeOutCmd(quint16 cmd, const QByteArray &arg)
@@ -164,6 +206,21 @@ QString DHudp::psCmdDbg(QString cmd, QString arg)
 void DHudp::processData(const Packet &p)
 {
     qDebug() << "TODO:  DHudp::processData() ";
+}
+
+bool DHudp::startListenData()
+{
+    i_udpDataSkt->abort();
+
+    if( !i_udpDataSkt->bind(0,QUdpSocket::DontShareAddress) ){
+        qDebug() << "\t Err: listen UDP port failed";
+        return false;
+    }
+
+    connect(i_udpDataSkt,SIGNAL(readyRead()),
+            this,SLOT(readDatagram()));
+
+    return true;
 }
 
 }

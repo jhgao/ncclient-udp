@@ -116,19 +116,8 @@ QString Connection::psCmdDbg(QString cmd, QString arg)
 
 void Connection::processProtocolAck(eProtocTypes type, const QByteArray protocArg)
 {
-    if( PROTOC_TCP == type ){
-        //TODO judge protocArg
-        QString serverDataSktAddr;
-        quint16 serverDataSktPort;
-
-        QDataStream in(protocArg);
-        in.setVersion(QDataStream::Qt_4_8);
-        in >> serverDataSktAddr;
-        in >> serverDataSktPort;
-
-        qDebug() << "Server ACK: TCP protocol, server DATA skt:"
-                 << serverDataSktAddr
-                 << " : " << serverDataSktPort;
+    if( PROTOC_UDP == type ){
+        qDebug() << "Server ACK: UDP protocol";
     }
 }
 

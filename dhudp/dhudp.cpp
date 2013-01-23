@@ -74,6 +74,12 @@ void DHudp::abortWorks()
 {
 }
 
+void DHudp::onCmdSktConnected()
+{
+    qDebug() << "DHudp::onCmdSktConnected()";
+    startFetch();
+}
+
 void DHudp::onCmdSktReadyRead()
 {
     //get packet size
@@ -122,7 +128,6 @@ void DHudp::readDatagram()
 {
     qDebug() << "TODO: DHudp::readDatagram()";
 
-
     while (i_udpDataSkt->hasPendingDatagrams()) {
 
         QByteArray i_inDatagram;
@@ -152,12 +157,6 @@ void DHudp::onIncomingTcpCmdConnection()
 
         emit sig_cmdConnected();
     }
-}
-
-void DHudp::onCmdSktConnected()
-{
-    qDebug() << "DHudp::onCmdSktConnected()";
-    startFetch();
 }
 
 void DHudp::writeOutCmd(quint16 cmd, const QByteArray &arg)

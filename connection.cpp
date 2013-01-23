@@ -10,7 +10,7 @@ Connection::Connection(QObject *parent) :
             this, SLOT(onConnected()));
 
     //init data handler
-    i_dh = new DHudp::DHudp(this);
+    i_dh = new nProtocUDP::DHudp(this);
     connect(i_dh, SIGNAL(sig_progressPercent(uint)),
             this, SIGNAL(sig_progressPercent(uint)));
     connect(i_dh, SIGNAL(sig_gotBlockSN(quint32)),

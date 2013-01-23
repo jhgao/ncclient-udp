@@ -46,7 +46,7 @@ ClientUDPWindow::ClientUDPWindow(QWidget *parent) :
     connect(m_con, SIGNAL(disconnected()),
             this, SLOT(onDisconnected()));
 
-    connect(this, SIGNAL(sig_conConAbortCmd()),
+    connect(this, SIGNAL(sig_onConAbortCmd()),
             m_con, SLOT(slot_abort()));
     connect(this, SIGNAL(sig_onConConnectToHostCmd(QString,quint16)),
             m_con, SLOT(slot_connectToHost(QString,quint16)));
@@ -89,9 +89,8 @@ void ClientUDPWindow::onDisconnected()
 
 void ClientUDPWindow::on_pushButton_linkServer_clicked()
 {
-
     if(m_isConnected){
-        emit sig_conConAbortCmd();
+        emit sig_onConAbortCmd();
     }else{
         emit sig_onConConnectToHostCmd(
                     ui->lineEdit_serverAddr->text(),

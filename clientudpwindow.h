@@ -19,7 +19,7 @@ public:
     explicit ClientUDPWindow(QWidget *parent = 0);
     ~ClientUDPWindow();
 signals:
-    void sig_conConAbortCmd();
+    void sig_onConAbortCmd();
     void sig_onConConnectToHostCmd(QString,quint16);
 
 private slots:

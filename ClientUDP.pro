@@ -36,6 +36,7 @@ HEADERS  += clientudpwindow.h \
     protocol/packet.h \
     protocol/cmd_define.h \
     dhudp/dhudp.h \
-    dhudp/dhudpdecoder.h
+    dhudp/dhudpdecoder.h \
+    dhudp/dhudpprotocol.h
 
 FORMS    += clientudpwindow.ui

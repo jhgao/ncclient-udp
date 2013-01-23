@@ -25,6 +25,7 @@ public:
     QByteArray declareArg();
     
 signals:
+    void sig_cmdConnected();
     
 public slots:
     void startFetch();

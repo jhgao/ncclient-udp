@@ -30,6 +30,10 @@ DHudp::DHudp(QObject *parent) :
 
     connect(i_tcpCmdServer, SIGNAL(newConnection()),
             this, SLOT(onIncomingTcpCmdConnection()));
+
+    //logic
+    connect(this, SIGNAL(sig_cmdConnected()),
+            this, SLOT(startFetch()));
 }
 
 eProtocTypes DHudp::type() const
@@ -109,6 +113,8 @@ void DHudp::onIncomingTcpCmdConnection()
                 this, SLOT(onCmdSktReadyRead()));
         connect(i_tcpCmdSkt, SIGNAL(disconnected()),
                 this, SLOT(onCmdSktDisconnected()));
+
+        emit sig_cmdConnected();
     }
 }
 
@@ -125,34 +131,17 @@ void DHudp::processCMD(const Packet &p)
     i_cmd_counter++;
 
     switch(p.getCMD()){
-    case CON_CONNECTING:
-        psCmdDbg("CON_CONNECTING");
-        writeOutCmd(CON_CONNECTED);
+    case ALA_LAST_CYCLE:
+        psCmdDbg("ALA_LAST_CYCLE");
         break;
-    case CON_START:
-        psCmdDbg("CON_START","TODO");
+    case ALA_OUTRANGE_CYC:
+        psCmdDbg("ALA_OUTRANGE_CYC","TODO");
         break;
-    case CON_NEXT:
-        psCmdDbg("CON_NEXT","TODO");
+    case ACK_DECODE_PARAM:
+        psCmdDbg("ACK_DECODE_PARAM","TODO");
         break;
-    case CON_CHG_CYC:
-        psCmdDbg("CON_CHG_CYC",
-                 QString::number(QVariant(p.getCMDarg()).toUInt()));
-        break;
-    case CON_START_REPEAT:
-        psCmdDbg("CON_START_REPEAT","TODO");
-        break;
-    case CON_STOP_REPEAT:
-        psCmdDbg("CON_STOP_REPEAT","TODO");
-        break;
-    case CON_DECODE_PARAM_REQ:
-        psCmdDbg("CON_DECODE_PARAM_REQ","TODO");
-        break;
-    case CON_BLOCKS_NUM_REQ:
-        psCmdDbg("CON_BLOCKS_NUM_REQ","TODO");
-        break;
-    case DATA_PORT_DECLARE:
-        psCmdDbg("DATALINK_PORT_DECLARE","TODO");
+    case QUE_DATA_PORT:
+        psCmdDbg("QUE_DATA_PORT","TODO");
         break;
     default:
         psCmdDbg(QString::number(p.getCMD()) + "?UNKNOWN" );

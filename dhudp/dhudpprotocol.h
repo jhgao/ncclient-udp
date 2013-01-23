@@ -4,32 +4,24 @@
 namespace nProtocUDP{
 
 enum eControl_CMD {
-    // for link
-    CON_CONNECTING,
-    CON_CONNECTED,
-    CON_START,
+    // client
+    CON_START,  //with arg(client ip, data port) request UDP data start
     CON_NEXT,
     CON_CHG_CYC, //jump to certain cycle
-    CON_D5F,
-    CON_D5FACK,
+    ALA_DONE,   //client alert: received all file
 
-    CON_START_REPEAT,   //[client]start a continuous repeat sending of current cycle data
-    CON_STOP_REPEAT,
+    // server
     ALA_LAST_CYCLE,  //[server] reached the last cycle, arg blocks number in last cycle
     ALA_OUTRANGE_CYC,
 
-    //data link negotiate (note these are commands too)
-    DATA_PORT_QUERY,  //question remote data port
-    DATA_PORT_DECLARE,   //declare self listing data port
-
     //encoding & decoding parameter negotiate
-    CON_DECODE_PARAM_REQ,   //[client] request this to initialize decoder
-    CON_DECODE_PARAM_ACK,   //[server] replay this to client
+    QUE_DECODE_PARAM,   //[client] request this to initialize decoder
+    ACK_DECODE_PARAM,   //[server] replay this to client
 
-    CON_BLOCKS_NUM_REQ, //old
-    CON_BLOCKS_NUM_ACK, //old
-    CON_FILE_SIZE_REQ,  //old[client] tell me total file size please
-    CON_FILE_SIZE_ACK  //old[server] current sending file size
+    //data link negotiate (note these are commands too)
+    QUE_DATA_PORT,  //question remote data port
+    ACK_DATA_PORT   //declare self listing data port
+
 };
 }//namespace nProtocUDP
 #endif // DHUDPPROTOCOL_H

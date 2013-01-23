@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     protocol/rawblock.cpp \
     protocol/packet.cpp \
     dhudp/dhudp.cpp \
-    dhudp/dhudpdecoder.cpp
+    dhudp/dhudpdecoder.cpp \
+    dhudp/decparams.cpp
 
 HEADERS  += clientudpwindow.h \
     datahandler.h \
@@ -37,6 +38,7 @@ HEADERS  += clientudpwindow.h \
     protocol/cmd_define.h \
     dhudp/dhudp.h \
     dhudp/dhudpdecoder.h \
-    dhudp/dhudpprotocol.h
+    dhudp/dhudpprotocol.h \
+    dhudp/decparams.h
 
 FORMS    += clientudpwindow.ui

@@ -10,6 +10,7 @@ DHudp::DHudp(QObject *parent) :
     qDebug() << "DHudp::DHudp()";
 
     i_udpDataSkt = new QUdpSocket(this);
+    i_decoder = new DHudpDecoder(this);
 
     i_tcpCmdServer = new QTcpServer(this);
     if (!i_tcpCmdServer->listen(QHostAddress::Any,0)) {
@@ -60,13 +61,7 @@ void DHudp::startFetch()
 {
     if(this->startListenData()){
         qDebug() << "DHudp::startFetch()";
-        QByteArray arg;
-        QDataStream out(&arg, QIODevice::WriteOnly);
-        out.setVersion(QDataStream::Qt_4_8);
-        out << i_ipAddress;
-        out << (quint16) i_udpDataSkt->localPort();
-
-        this->writeOutCmd(CON_START,arg);
+        this->writeOutCmd(QUE_DECODE_PARAM);
     }
 }
 
@@ -179,7 +174,23 @@ void DHudp::processCMD(const Packet &p)
         psCmdDbg("ALA_OUTRANGE_CYC","TODO");
         break;
     case ACK_DECODE_PARAM:
-        psCmdDbg("ACK_DECODE_PARAM","TODO");
+        psCmdDbg("ACK_DECODE_PARAM");
+        if(p.getCMDarg().size() != 0){
+            //prepare decoder
+            DecParams param;
+            param.fromArray(p.getCMDarg());
+            i_decoder->setDecodeParameters(param);
+            qDebug() << param.dbgString();
+
+            //send start
+            QByteArray arg;
+            QDataStream out(&arg, QIODevice::WriteOnly);
+            out.setVersion(QDataStream::Qt_4_8);
+            out << i_ipAddress;
+            out << (quint16) i_udpDataSkt->localPort();
+
+            this->writeOutCmd(CON_START,arg);
+        }
         break;
     case QUE_DATA_PORT:
         psCmdDbg("QUE_DATA_PORT","TODO");

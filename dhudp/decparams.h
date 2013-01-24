@@ -26,6 +26,10 @@ public:
     quint32 inBlockCoeffLen;    //coeffLen in incoming Blocks
     quint32 inBlockDataSize;
     quint64 totalEncBlocks;
+
+    //about cycling
+    quint32 oneCycleBlockNum;
+    quint32 totalCycleNum;
 };
 
 }//namespace nProtocUDP

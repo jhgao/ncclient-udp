@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QQueue>
+#include <QMutex>
+#include <QMutexLocker>
 
 #include <QReadWriteLock>
 #include <QReadLocker>

@@ -4,6 +4,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QUdpSocket>
+#include <QTimer>
 #include "datahandler.h"
 #include "execthread.h"
 #include "protocol/protocoltypes.h"
@@ -11,6 +12,7 @@
 
 #include "dhudpprotocol.h"
 #include "dhudpdecoder.h"
+#include "dhudprcvqueue.h"
 
 namespace nProtocUDP{
 
@@ -49,6 +51,8 @@ private:
     void processData(const Packet& p);
 
     bool startListenData();
+    void enqueueIncomingData(const QByteArray&);
+
     QTcpServer* i_tcpCmdServer;
     QString i_ipAddress;    //local ip
     QTcpSocket* i_tcpCmdSkt;
@@ -59,6 +63,10 @@ private:
     quint16 i_dataPacketSize;
     DHudpDecoder *i_decoder;
     ExecThread *i_decoderThread;
+
+    //rcv datagram queue
+    DHudpRcvQueue* i_queue;
+    QTimer* i_procQueueDelayTimer;
 };
 }//namespace nProtocUDP
 

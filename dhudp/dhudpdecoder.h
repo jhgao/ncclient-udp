@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QQueue>
-#include <QTimer>
 #include <QBitArray>
 #include <QSet>
 #include <QFileInfo>
@@ -23,9 +22,8 @@ class DHudpDecoder : public QObject
 {
     Q_OBJECT
 public:
-    explicit DHudpDecoder(QObject *parent = 0);
+    explicit DHudpDecoder(DHudpRcvQueue &, QObject *parent = 0);
     void setDecodeParameters(const DecParams&);
-    void enqueueIncomingData(const QByteArray&);
     
 signals:
     void sig_correctionFragCyc(quint32);
@@ -37,15 +35,20 @@ public slots:
     void processQueue();
 
 private:
+    void initRcvBitMapFromBlocksNum(quint64 bn = 0);
+    void clearRcvBlocksCacheForCycle(quint32 cyc);
     void receiveFragment(const QByteArray&);
     bool checkCurrentCycleBlocks();
     bool saveCurrentCycleBlocks();
+    void toCycle(quint32);
     void markGotBlock(const RcvBlock&);
+
+    quint32 blockNumInCycle(quint32) const;
+    bool touch(QString aFilePath);
 
     DecParams i_params;
     quint64 i_rcvAllBlocksNum;  //TODO: rename:total blocks number excepted to get
-    DHudpRcvQueue* i_queue;
-    QTimer* i_procQueueDelayTimer;
+    DHudpRcvQueue& i_queue;
 
     //receiveFragment
     int i_wrongFragsCounter;

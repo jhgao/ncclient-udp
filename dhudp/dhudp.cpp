@@ -5,23 +5,36 @@ namespace nProtocUDP{
 DHudp::DHudp(QObject *parent) :
     DataHandler(parent),i_tcpCmdServer(0),i_tcpCmdSkt(0),
     i_cmd_counter(0),i_cmdPacketSize(0),i_dataPacketSize(0),
-    i_decoder(0),i_udpDataSkt(0),i_decoderThread(0)
+    i_decoder(0),i_udpDataSkt(0),i_decoderThread(0),i_queue(0),
+    i_procQueueDelayTimer(0)
 {
     qDebug() << "DHudp::DHudp()";
 
-    i_udpDataSkt = new QUdpSocket(this);
-    i_decoder = new DHudpDecoder(this);
+    i_udpDataSkt = new QUdpSocket(this);    
+
+    i_queue = new DHudpRcvQueue(this);
+    i_procQueueDelayTimer = new QTimer(this);
+    i_procQueueDelayTimer->setSingleShot(true);
+    i_decoder = new DHudpDecoder(*i_queue);
+
+    connect(i_procQueueDelayTimer,SIGNAL(timeout()),//cross thread
+            i_decoder, SLOT(processQueue()));
+    connect(i_queue, SIGNAL(sig_readyRead()),//cross thread
+            i_decoder, SLOT(processQueue()));
+
     connect(i_decoder, SIGNAL(sig_correctionFragCyc(quint32)),
             this, SLOT(sendCmdToCyc(quint32)));
     connect(i_decoder, SIGNAL(sig_needNextCycle()),
             this, SLOT(sendCmdNext()));
     connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
             this, SIGNAL(sig_progressPercent(uint)));
-    connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
+    connect(i_decoder, SIGNAL(sig_savedBlockSN(quint32)),
             this, SIGNAL(sig_gotBlockSN(quint32)));
+
     i_decoderThread = new ExecThread(this);
     i_decoder->moveToThread(i_decoderThread);
     i_decoderThread->start();
+
 
     i_tcpCmdServer = new QTcpServer(this);
     if (!i_tcpCmdServer->listen(QHostAddress::Any,0)) {
@@ -115,7 +128,7 @@ void DHudp::onCmdSktReadyRead()
             processCMD(p);
             break;
         case PTYPE_DATA:
-            processData(p);
+            qDebug() << "TODO: data on cmd skt";
             break;
         default:
             qDebug() << "\t unknown packet type";
@@ -146,7 +159,7 @@ void DHudp::readDatagram()
 
         Packet p;
         if( p.fromPacket(dgm)){
-            i_decoder->enqueueIncomingData(p.getData());
+            enqueueIncomingData(p.getData());
         }
     }
 }
@@ -255,6 +268,12 @@ bool DHudp::startListenData()
             this,SLOT(readDatagram()));
 
     return true;
+}
+
+void DHudp::enqueueIncomingData(const QByteArray &a)
+{
+    i_queue->waitForEnqueue(a);
+    i_procQueueDelayTimer->start(DECODE_QUEUE_DELAY_TIMEOUT);
 }
 
 }

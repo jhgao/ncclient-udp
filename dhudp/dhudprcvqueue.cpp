@@ -1,4 +1,5 @@
 #include "dhudprcvqueue.h"
+#include <QDebug>
 
 namespace nProtocUDP{
 DHudpRcvQueue::DHudpRcvQueue(QObject *parent) :
@@ -8,7 +9,7 @@ DHudpRcvQueue::DHudpRcvQueue(QObject *parent) :
 
 QByteArray DHudpRcvQueue::waitForDequeue()
 {
-//    QWriteLocker locker(&i_mutex);
+    QWriteLocker locker(&i_mutex);
     return i_queue.dequeue();
 }
 

@@ -1,11 +1,23 @@
 #include "decparams.h"
 
 namespace nProtocUDP{
-DecParams::DecParams()
+DecParams::DecParams():
+    rawFileLength(0),
+    inBlockCoeffLen(0),
+    inBlockDataSize(0),
+    totalEncBlocks(0),
+    oneCycleBlockNum(0),
+    totalCycleNum(0)
 {
 }
 
-DecParams::DecParams(const QByteArray &a)
+DecParams::DecParams(const QByteArray &a):
+    rawFileLength(0),
+    inBlockCoeffLen(0),
+    inBlockDataSize(0),
+    totalEncBlocks(0),
+    oneCycleBlockNum(0),
+    totalCycleNum(0)
 {
     this->fromArray(a);
 }
@@ -16,6 +28,8 @@ DecParams &DecParams::operator =(const DecParams &rhs)
     inBlockCoeffLen = rhs.inBlockCoeffLen;
     inBlockDataSize = rhs.inBlockDataSize;
     totalEncBlocks = rhs.totalEncBlocks;
+    oneCycleBlockNum = rhs.oneCycleBlockNum;
+    totalCycleNum = rhs.totalCycleNum;
     return *this;
 }
 
@@ -28,6 +42,8 @@ QByteArray DecParams::toArray() const
     fs << inBlockCoeffLen;
     fs << inBlockDataSize;
     fs << totalEncBlocks;
+    fs << oneCycleBlockNum;
+    fs << totalCycleNum;
     return f;
 }
 
@@ -39,6 +55,8 @@ bool DecParams::fromArray(const QByteArray &a)
     in >> inBlockCoeffLen;
     in >> inBlockDataSize;
     in >> totalEncBlocks;
+    in >> oneCycleBlockNum;
+    in >>totalCycleNum;
     return true;
 }
 
@@ -48,6 +66,8 @@ QString DecParams::dbgString() const
             + QString(" rawFile") + QString::number(rawFileLength)
             + QString(" coeff") + QString::number(inBlockCoeffLen)
             + QString(" blockData") + QString::number(inBlockDataSize)
-            + QString(" totalBlock") + QString::number(totalEncBlocks);
+            + QString(" totalBlock") + QString::number(totalEncBlocks)
+            + QString(" oneCycleBlock") + QString::number(oneCycleBlockNum)
+            + QString(" totalCycle") + QString::number(totalCycleNum);
 }
 }//namespace nProtocUDP

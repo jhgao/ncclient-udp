@@ -2,64 +2,80 @@
 
 namespace nProtocUDP{
 
-DHudpDecoder::DHudpDecoder(QObject *parent) :
-    QObject(parent),i_queue(0),i_procQueueDelayTimer(0),
+DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
+    QObject(parent),i_queue(q),
     i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0),
     i_currentCycleBlockNum(0)
 {
-    i_queue = new DHudpRcvQueue(this);
-    connect(i_queue, SIGNAL(sig_readyRead()),
-            this, SLOT(processQueue()));
+    //cache file
+    i_rcvCacheFileInfo.setFile(RCVER_CACHE_FILE);
+    if(i_rcvCacheFileInfo.exists()){
+        QFile::remove(i_rcvCacheFileInfo.filePath());
+    }
+    if(!touch(i_rcvCacheFileInfo.filePath()))
+        qDebug() << "\t Error: failed to touch receive cache file";
 
-    i_procQueueDelayTimer = new QTimer(this);
-    i_procQueueDelayTimer->setSingleShot(true);
-    connect(i_procQueueDelayTimer,SIGNAL(timeout()),
-            this, SLOT(processQueue()));
+    this->touch(i_rcvCacheFileInfo.fileName() + ".raw");
 }
 
 void DHudpDecoder::setDecodeParameters(const DecParams &p)
 {
     qDebug() << "DHudpDecoder::setDecodeParameters()";
     i_params = p;
-}
-
-void DHudpDecoder::enqueueIncomingData(const QByteArray &a)
-{
-    i_queue->waitForEnqueue(a);
-    i_procQueueDelayTimer->start(DECODE_QUEUE_DELAY_TIMEOUT);
+    i_rcvAllBlocksNum = i_params.totalEncBlocks;
+    initRcvBitMapFromBlocksNum(i_rcvAllBlocksNum);
+    //prepare for cycle 0
+    this->clearRcvBlocksCacheForCycle(0);
 }
 
 void DHudpDecoder::processQueue()
 {
-    qDebug() << "DHudpDecoder::processQueue()";
-    while(!i_queue->isEmpty()){
-        qDebug() << "\t" << i_queue->size();
-        receiveFragment(i_queue->waitForDequeue());
+//    qDebug() << "DHudpDecoder::processQueue()";
+    while(!i_queue.isEmpty()){
+        receiveFragment(i_queue.waitForDequeue());
+    }
+}
+
+void DHudpDecoder::initRcvBitMapFromBlocksNum(quint64 bn)
+{
+    i_rcvBitMap.resize(bn);
+    i_rcvBitMap.fill(false);
+    i_gotBlockSNs.clear();
+}
+
+void DHudpDecoder::clearRcvBlocksCacheForCycle(quint32 cyc)
+{
+    qDebug() << "DHudpDecoder::clearRcvBlocksCacheForCycle()" << cyc;
+    i_rcvCycleBlocks.clear();
+    for(int i = 0; i< i_currentCycleBlockNum; ++i){
+        i_rcvCycleBlocks.append(RcvBlock(cyc,i));
     }
 }
 
 void DHudpDecoder::receiveFragment(const QByteArray &a)
 {
-    qDebug() << "DHudpDecoder::receiveFragment()"
-             << QString(a);
-
     Fragment frag;
     if( 0 == frag.fromArray(a))
         return;
 
-//    qDebug() << "receiveFragment()" << frag.dbgString();
+    qDebug() << "DHudpDecoder::receiveFragment()" << frag.dbgString();
 
     //filter fragmets
     if( frag.cyc != i_rcv_cyc ){
         ++i_wrongFragsCounter;
         if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
             i_wrongFragsCounter = 0;
-            emit sig_correctionFragCyc(i_rcv_cyc);  //need current cycle fragments
+            emit sig_correctionFragCyc(i_rcv_cyc);
         }
         return;
     }
 
     //assemble fragment into block
+    if(i_rcvCycleBlocks.isEmpty()){
+        qDebug() << "\t Err:rcv blocks cache list empty!";
+        return;
+    }
+
     RcvBlock &b = i_rcvCycleBlocks[frag.blockNo];
     b.assembleFragment(frag);
 
@@ -71,6 +87,7 @@ void DHudpDecoder::receiveFragment(const QByteArray &a)
 
         if(this->checkCurrentCycleBlocks()){
             this->saveCurrentCycleBlocks();
+            this->toCycle(i_rcv_cyc + 1);
             emit sig_needNextCycle();
         }
     }
@@ -140,6 +157,15 @@ bool DHudpDecoder::saveCurrentCycleBlocks()
     return true;
 }
 
+void DHudpDecoder::toCycle(quint32 cyc)
+{
+    if( cyc >= i_params.totalCycleNum ) return;
+
+    i_rcv_cyc = cyc ;
+    i_currentCycleBlockNum = blockNumInCycle(i_rcv_cyc);
+    this->clearRcvBlocksCacheForCycle(i_rcv_cyc);
+}
+
 void DHudpDecoder::markGotBlock(const RcvBlock &b)
 {
     quint32 blockSN = ONE_CYCLE_BLOCKS * b.cyc + b.blockNo ;
@@ -147,6 +173,30 @@ void DHudpDecoder::markGotBlock(const RcvBlock &b)
     i_gotBlockSNs.insert(blockSN);
 
     emit sig_progressPercent(i_gotBlockSNs.size()*100/i_rcvAllBlocksNum);
+}
+
+quint32 DHudpDecoder::blockNumInCycle(quint32 cyc) const
+{
+    quint32 n;
+    if( cyc + 1 < i_params.totalCycleNum
+            || 0 == i_rcvAllBlocksNum % i_params.oneCycleBlockNum){
+         n = ONE_CYCLE_BLOCKS;
+    }else if( cyc +1 == i_params.totalCycleNum){
+        n = i_rcvAllBlocksNum % i_params.oneCycleBlockNum;
+    }else {
+        n = 0;
+    }
+    return n;
+}
+
+bool DHudpDecoder::touch(QString aFilePath)
+{
+    if( QFile::exists(aFilePath)) return true;
+
+    QFile f(aFilePath);
+    bool rst = f.open(QIODevice::ReadWrite);
+    f.close();
+    return rst;
 }
 
 }

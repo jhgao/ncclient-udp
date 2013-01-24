@@ -15,7 +15,6 @@ TEMPLATE = app
 SOURCES += main.cpp\
         clientudpwindow.cpp \
     datahandler.cpp \
-    connectionthread.cpp \
     connection.cpp \
     gui/rcvprogressview.cpp \
     gui/rcvprogressscene.cpp \
@@ -23,11 +22,12 @@ SOURCES += main.cpp\
     protocol/packet.cpp \
     dhudp/dhudp.cpp \
     dhudp/dhudpdecoder.cpp \
-    dhudp/decparams.cpp
+    dhudp/decparams.cpp \
+    dhudp/dhudprcvqueue.cpp \
+    execthread.cpp
 
 HEADERS  += clientudpwindow.h \
     datahandler.h \
-    connectionthread.h \
     connection.h \
     gui/rcvprogressview.h \
     gui/rcvprogressscene.h \
@@ -39,6 +39,8 @@ HEADERS  += clientudpwindow.h \
     dhudp/dhudp.h \
     dhudp/dhudpdecoder.h \
     dhudp/dhudpprotocol.h \
-    dhudp/decparams.h
+    dhudp/decparams.h \
+    dhudp/dhudprcvqueue.h \
+    execthread.h
 
 FORMS    += clientudpwindow.ui

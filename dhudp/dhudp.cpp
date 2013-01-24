@@ -5,12 +5,15 @@ namespace nProtocUDP{
 DHudp::DHudp(QObject *parent) :
     DataHandler(parent),i_tcpCmdServer(0),i_tcpCmdSkt(0),
     i_cmd_counter(0),i_cmdPacketSize(0),i_dataPacketSize(0),
-    i_decoder(0),i_udpDataSkt(0)
+    i_decoder(0),i_udpDataSkt(0),i_decoderThread(0)
 {
     qDebug() << "DHudp::DHudp()";
 
     i_udpDataSkt = new QUdpSocket(this);
     i_decoder = new DHudpDecoder(this);
+    i_decoderThread = new ExecThread(this);
+    i_decoder->moveToThread(i_decoderThread);
+    i_decoderThread->start();
 
     i_tcpCmdServer = new QTcpServer(this);
     if (!i_tcpCmdServer->listen(QHostAddress::Any,0)) {
@@ -121,21 +124,22 @@ void DHudp::onCmdSktDisconnected()
 
 void DHudp::readDatagram()
 {
-    qDebug() << "TODO: DHudp::readDatagram()";
-
     while (i_udpDataSkt->hasPendingDatagrams()) {
 
-        QByteArray i_inDatagram;
+        QByteArray dgm;
         QHostAddress sender;
         quint16 senderPort;
 
-        i_inDatagram.resize(i_udpDataSkt->pendingDatagramSize());
-        i_udpDataSkt->readDatagram(i_inDatagram.data(),
-                                      i_inDatagram.size(),
+        dgm.resize(i_udpDataSkt->pendingDatagramSize());
+        i_udpDataSkt->readDatagram(dgm.data(),
+                                      dgm.size(),
                                       &sender,
                                       &senderPort);
 
-        qDebug() << "\t" << QString(i_inDatagram);
+        Packet p;
+        if( p.fromPacket(dgm)){
+            i_decoder->enqueueIncomingData(p.getData());
+        }
     }
 }
 

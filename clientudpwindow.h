@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include "gui/rcvprogressscene.h"
 #include "connection.h"
-#include "connectionthread.h"
+#include "execthread.h"
 #include "protocol/ports_define.h"
 
 namespace Ui {
@@ -35,7 +35,7 @@ private:
     RcvProgressScene m_scene;
     bool m_isConnected;
     Connection* m_con;
-    ConnectionThread* m_conThread;
+    ExecThread* m_conThread;
 };
 
 #endif // CLIENTUDPWINDOW_H

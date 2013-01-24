@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QUdpSocket>
 #include "datahandler.h"
+#include "execthread.h"
 #include "protocol/protocoltypes.h"
 #include "protocol/packet.h"
 
@@ -55,6 +56,7 @@ private:
     quint16 i_cmdPacketSize;   //used when nonblocking rcv
     quint16 i_dataPacketSize;
     DHudpDecoder *i_decoder;
+    ExecThread *i_decoderThread;
 };
 }//namespace nProtocUDP
 

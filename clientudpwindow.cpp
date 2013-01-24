@@ -52,7 +52,7 @@ ClientUDPWindow::ClientUDPWindow(QWidget *parent) :
             m_con, SLOT(slot_connectToHost(QString,quint16)));
 
     //handle connection in another thread
-    if( !m_conThread)   m_conThread = new ConnectionThread(this);
+    if( !m_conThread)   m_conThread = new ExecThread(this);
     m_con->moveToThread(m_conThread);
     m_conThread->start();
 }

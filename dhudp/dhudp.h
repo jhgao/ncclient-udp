@@ -40,6 +40,8 @@ private slots:
 
     //
     void readDatagram();
+    void sendCmdNext();
+    void sendCmdToCyc(quint32);
 private:
     void writeOutCmd(quint16, const QByteArray& = QByteArray());
     void processCMD(const Packet& p);

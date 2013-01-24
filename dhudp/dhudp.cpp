@@ -11,6 +11,14 @@ DHudp::DHudp(QObject *parent) :
 
     i_udpDataSkt = new QUdpSocket(this);
     i_decoder = new DHudpDecoder(this);
+    connect(i_decoder, SIGNAL(sig_correctionFragCyc(quint32)),
+            this, SLOT(sendCmdToCyc(quint32)));
+    connect(i_decoder, SIGNAL(sig_needNextCycle()),
+            this, SLOT(sendCmdNext()));
+    connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
+            this, SIGNAL(sig_progressPercent(uint)));
+    connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
+            this, SIGNAL(sig_gotBlockSN(quint32)));
     i_decoderThread = new ExecThread(this);
     i_decoder->moveToThread(i_decoderThread);
     i_decoderThread->start();
@@ -141,6 +149,18 @@ void DHudp::readDatagram()
             i_decoder->enqueueIncomingData(p.getData());
         }
     }
+}
+
+void DHudp::sendCmdNext()
+{
+    this->writeOutCmd(CON_NEXT);
+}
+
+void DHudp::sendCmdToCyc(quint32 cyc)
+{
+    this->writeOutCmd(CON_CHG_CYC,
+                      QByteArray(
+                          QVariant((qulonglong)cyc).toByteArray()));
 }
 
 void DHudp::onIncomingTcpCmdConnection()

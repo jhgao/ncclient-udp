@@ -9,13 +9,13 @@ DHudpRcvQueue::DHudpRcvQueue(QObject *parent) :
 
 QByteArray DHudpRcvQueue::waitForDequeue()
 {
-    QWriteLocker locker(&i_mutex);
+    QMutexLocker locker(&i_mutex);
     return i_queue.dequeue();
 }
 
 void DHudpRcvQueue::waitForEnqueue(const QByteArray &a)
 {
-    QReadLocker locker(&i_mutex);
+    QMutexLocker locker(&i_mutex);
     i_queue.enqueue(a);
     if( i_queue.size() > QUEUE_LIMIT_SIZE )
         emit sig_readyRead();

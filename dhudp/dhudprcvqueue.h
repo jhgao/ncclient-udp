@@ -6,10 +6,6 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-#include <QReadWriteLock>
-#include <QReadLocker>
-#include <QWriteLocker>
-
 namespace nProtocUDP{
 
 static const int QUEUE_LIMIT_SIZE = 500;
@@ -28,7 +24,7 @@ signals:
 public slots:
 private:
     QQueue<QByteArray> i_queue;
-    QReadWriteLock i_mutex;
+    QMutex i_mutex;
 };
 }//namespace nProtocUDP
 

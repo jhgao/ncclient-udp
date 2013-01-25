@@ -91,6 +91,7 @@ void DHudp::startFetch()
 
 void DHudp::abortWorks()
 {
+    i_tcpCmdSkt->disconnectFromHost();
 }
 
 void DHudp::onCmdSktConnected()

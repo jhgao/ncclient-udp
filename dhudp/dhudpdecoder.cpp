@@ -4,8 +4,7 @@ namespace nProtocUDP{
 
 DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
     QObject(parent),i_queue(q),
-    i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0),
-    i_currentCycleBlockNum(0)
+    i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0)
 {
     //cache file
     i_rcvCacheFileInfo.setFile(RCVER_CACHE_FILE);
@@ -25,7 +24,6 @@ void DHudpDecoder::setDecodeParameters(const DecParams &p)
     i_rcvAllBlocksNum = i_params.totalEncBlocks;
     initRcvBitMapFromBlocksNum(i_rcvAllBlocksNum);
     //prepare for cycle 0
-    i_currentCycleBlockNum = blockNumInCycle(i_rcv_cyc);
     this->clearRcvBlocksCacheForCycle(0);
 }
 
@@ -34,10 +32,95 @@ void DHudpDecoder::processQueue()
     while(!i_queue.isEmpty()){
         processFragment(i_queue.waitForDequeue());
     }
+}
 
-    //check if current cyclel got
-    if( !this->checkCurrentCycleBlocks()) return;
+void DHudpDecoder::initRcvBitMapFromBlocksNum(quint64 bn)
+{
+    i_rcvBitMap.resize(bn);
+    i_rcvBitMap.fill(false);
+    i_gotBlockSNs.clear();
+}
 
+void DHudpDecoder::clearRcvBlocksCacheForCycle(quint32 cyc)
+{
+    qDebug() << "DHudpDecoder::clearRcvBlocksCacheForCycle()" << cyc;
+    i_rcvCycleBlocks.clear();
+
+    quint32 blockNum  = blockNumInCycle(cyc);
+    if( 0 == blockNum ){
+        qDebug() << "\t Err: block number in this cycle is 0 !";
+        return;
+    }
+
+    for(int i = 0; i< blockNum; ++i){
+        i_rcvCycleBlocks.append(RcvBlock(cyc,i));   //TODO RcvBlock tgtSize
+    }
+}
+
+bool DHudpDecoder::processFragment(const QByteArray &a)
+{
+    Fragment frag;
+    if( 0 == frag.fromArray(a))
+        return false;
+
+    qDebug() << "DHudpDecoder::processFragment()" << frag.dbgString();
+
+    //filter fragmets
+    if( frag.cyc != i_rcv_cyc ){
+        ++i_wrongFragsCounter;
+        if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
+            i_wrongFragsCounter = 0;
+            emit sig_correctionCyc(i_rcv_cyc);
+        }
+        return false;
+    }
+
+    //assemble fragment into block
+    if(i_rcvCycleBlocks.isEmpty()){
+        qDebug() << "\t Err: rcv blocks cache list empty!";
+        return false;
+    }
+
+    RcvBlock &b = i_rcvCycleBlocks[frag.blockNo];
+    if( ! b.isComplete() ){
+        b.assembleFragment(frag);
+        if( b.isComplete() ){ //got this whole block
+            qDebug() << "[cached Block] " << b.dbgString();
+            emit sig_gotBlockSN(i_params.oneCycleBlockNum*b.cyc + b.blockNo);
+
+            //check if got all current cycle blocks
+            if( this->checkCurrentCycleBlocks())
+                this->onGotAllCurrentCycleBlocks();
+        }
+    }
+
+    return true;
+}
+
+bool DHudpDecoder::checkCurrentCycleBlocks()
+{
+    qDebug() << "DataHandler::checkCurrentCycleBlocks()"
+             << "cycle" << i_rcv_cyc;
+
+    quint64 tgtNum = blockNumInCycle(i_rcv_cyc);
+    qDebug() << "\t tgt" << tgtNum << "blocks";
+    if( i_rcvCycleBlocks.size() != tgtNum)
+        return false;
+
+    for(int i = 0; i < i_rcvCycleBlocks.size(); ++i){
+        if( !i_rcvCycleBlocks[i].isComplete() ){
+            qDebug() << "\t block" << i << " not complete"
+                        << i_rcvCycleBlocks[i].dbgString();
+            return false;
+        }
+    }
+
+    qDebug() << "\t Got all : current cycle blocks.";
+    return true;
+}
+
+void DHudpDecoder::onGotAllCurrentCycleBlocks()
+{
     this->saveCurrentCycleBlocks();
 
     //check if all saved
@@ -59,88 +142,11 @@ void DHudpDecoder::processQueue()
     emit sig_fullFileSaved();
 }
 
-void DHudpDecoder::initRcvBitMapFromBlocksNum(quint64 bn)
-{
-    i_rcvBitMap.resize(bn);
-    i_rcvBitMap.fill(false);
-    i_gotBlockSNs.clear();
-}
-
-void DHudpDecoder::clearRcvBlocksCacheForCycle(quint32 cyc)
-{
-    qDebug() << "DHudpDecoder::clearRcvBlocksCacheForCycle()" << cyc;
-    i_rcvCycleBlocks.clear();
-
-    for(int i = 0; i< i_currentCycleBlockNum; ++i){
-        i_rcvCycleBlocks.append(RcvBlock(cyc,i));   //TODO RcvBlock tgtSize
-    }
-}
-
-bool DHudpDecoder::processFragment(const QByteArray &a)
-{
-    Fragment frag;
-    if( 0 == frag.fromArray(a))
-        return false;
-
-    qDebug() << "DHudpDecoder::receiveFragment()" << frag.dbgString();
-
-    //filter fragmets
-    if( frag.cyc != i_rcv_cyc ){
-        ++i_wrongFragsCounter;
-        if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
-            i_wrongFragsCounter = 0;
-            emit sig_correctionCyc(i_rcv_cyc);
-        }
-        return false;
-    }
-
-    //assemble fragment into block
-    if(i_rcvCycleBlocks.isEmpty()){
-        qDebug() << "\t Err:rcv blocks cache list empty!";
-        return false;
-    }
-
-    RcvBlock &b = i_rcvCycleBlocks[frag.blockNo];
-    b.assembleFragment(frag);
-    if( b.isComplete() ){ //got this whole block
-        qDebug() << "[cached Block] " << b.dbgString();
-    }
-
-    return true;
-}
-
-bool DHudpDecoder::checkCurrentCycleBlocks()
-{
-    qDebug() << "DataHandler::checkCurrentCycleBlocks()"
-             << "cycle" << i_rcv_cyc;
-    quint64 limit;
-    if( 0 < i_currentCycleBlockNum) limit = i_currentCycleBlockNum;
-    else limit = ONE_CYCLE_BLOCKS;
-
-    qDebug() << "\t tgt" << limit << "blocks";
-
-    for(int i = 0; i< limit; ++i){
-        if( !i_rcvCycleBlocks[i].isComplete() ){
-            qDebug() << "\t block" << i << " not complete"
-                        << i_rcvCycleBlocks[i].dbgString();
-            return false;
-        }
-    }
-
-    qDebug() << "\t Got all : current cycle blocks.";
-    return true;
-}
-
 bool DHudpDecoder::saveCurrentCycleBlocks()
 {
     qDebug() << "DataHandler::saveCurrentCycleBlocks()"
              << "cyc" << i_rcv_cyc
              << "to" << i_rcvCacheFileInfo.fileName();
-    quint64 limit;
-    if( 0 < i_currentCycleBlockNum) limit = i_currentCycleBlockNum;
-    else limit = ONE_CYCLE_BLOCKS;
-
-    if( 0 == limit) return false;
 
     QFile f(i_rcvCacheFileInfo.filePath());
 
@@ -154,26 +160,23 @@ bool DHudpDecoder::saveCurrentCycleBlocks()
     quint64 wroteBytes = 0;
     int wResult = 0;
 
-    for(int i = 0; i< limit; ++i){
+    for(int i = 0; i< i_rcvCycleBlocks.size(); ++i){
         const RcvBlock &b = i_rcvCycleBlocks.at(i);
-        dataOffset = b.tgtSize * (ONE_CYCLE_BLOCKS * b.cyc + b.blockNo);
+        dataOffset = b.tgtSize * (i_params.oneCycleBlockNum * b.cyc + b.blockNo);
         f.seek(dataOffset);
         wResult = f.write(b.data.data(), b.tgtSize);
         if( -1 == wResult ){
             qDebug() << "\t write error" << f.errorString();
             break;
         }else {
-            this->markGotBlock(b);
-            qDebug() << "\t saved block" << b.dbgString();
             wroteBytes += wResult;
+            this->markSavedBlock(b);
+            qDebug() << "\t saved block" << b.dbgString();
             qDebug() << "\t wrote out" << wroteBytes << "bytes";
-            emit sig_savedBlockSN(ONE_CYCLE_BLOCKS*b.cyc + b.blockNo);
         }
     }
 
     f.close();
-
-
     return true;
 }
 
@@ -182,13 +185,12 @@ void DHudpDecoder::toCycle(quint32 cyc)
     if( cyc >= i_params.totalCycleNum ) return;
 
     i_rcv_cyc = cyc ;
-    i_currentCycleBlockNum = blockNumInCycle(i_rcv_cyc);
     this->clearRcvBlocksCacheForCycle(i_rcv_cyc);
 }
 
-void DHudpDecoder::markGotBlock(const RcvBlock &b)
+void DHudpDecoder::markSavedBlock(const RcvBlock &b)
 {
-    quint32 blockSN = ONE_CYCLE_BLOCKS * b.cyc + b.blockNo ;
+    quint32 blockSN = i_params.oneCycleBlockNum * b.cyc + b.blockNo ;
     i_rcvBitMap.setBit(blockSN, true);
     i_gotBlockSNs.insert(blockSN);
 
@@ -200,7 +202,7 @@ quint32 DHudpDecoder::blockNumInCycle(quint32 cyc) const
     quint32 n;
     if( cyc + 1 < i_params.totalCycleNum
             || 0 == i_rcvAllBlocksNum % i_params.oneCycleBlockNum){
-         n = ONE_CYCLE_BLOCKS;
+         n = i_params.oneCycleBlockNum;
     }else if( cyc +1 == i_params.totalCycleNum){
         n = i_rcvAllBlocksNum % i_params.oneCycleBlockNum;
     }else {

@@ -30,7 +30,7 @@ DHudp::DHudp(QObject *parent) :
             this, SLOT(onGotFullFile()));
     connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
             this, SIGNAL(sig_progressPercent(uint)));
-    connect(i_decoder, SIGNAL(sig_savedBlockSN(quint32)),
+    connect(i_decoder, SIGNAL(sig_gotBlockSN(quint32)),
             this, SIGNAL(sig_gotBlockSN(quint32)));
 
     i_decoderThread = new ExecThread(this);

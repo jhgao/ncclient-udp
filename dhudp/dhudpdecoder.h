@@ -31,7 +31,7 @@ signals:
     void sig_fullFileSaved();
 
     void sig_progressPercent(uint);
-    void sig_savedBlockSN(quint32);
+    void sig_gotBlockSN(quint32);
 public slots:
     void processQueue();
 
@@ -40,9 +40,10 @@ private:
     void clearRcvBlocksCacheForCycle(quint32 cyc);
     bool processFragment(const QByteArray&);
     bool checkCurrentCycleBlocks();
+    void onGotAllCurrentCycleBlocks();
     bool saveCurrentCycleBlocks();
     void toCycle(quint32);
-    void markGotBlock(const RcvBlock&);
+    void markSavedBlock(const RcvBlock&);
 
     quint32 blockNumInCycle(quint32) const;
     bool touch(QString aFilePath);
@@ -55,7 +56,6 @@ private:
     int i_wrongFragsCounter;
     quint32 i_rcv_cyc;
     QList<RcvBlock> i_rcvCycleBlocks;   //already got blocks
-    quint64 i_currentCycleBlockNum;
 
     QBitArray   i_rcvBitMap;    //map of got / not got blocks
     QSet<quint32> i_gotBlockSNs;    //ID number of already got blocks

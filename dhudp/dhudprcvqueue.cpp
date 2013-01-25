@@ -2,8 +2,8 @@
 #include <QDebug>
 
 namespace nProtocUDP{
-DHudpRcvQueue::DHudpRcvQueue(QObject *parent) :
-    QObject(parent)
+DHudpRcvQueue::DHudpRcvQueue(const int triggerLimit, QObject *parent) :
+    QObject(parent),i_triggerLimit(triggerLimit)
 {
 }
 
@@ -17,7 +17,7 @@ void DHudpRcvQueue::waitForEnqueue(const QByteArray &a)
 {
     QMutexLocker locker(&i_mutex);
     i_queue.enqueue(a);
-    if( i_queue.size() > QUEUE_LIMIT_SIZE )
+    if( 0 == (i_queue.size() % i_triggerLimit) )
         emit sig_readyRead();
 }
 

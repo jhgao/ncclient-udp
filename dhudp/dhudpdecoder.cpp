@@ -32,13 +32,13 @@ void DHudpDecoder::setDecodeParameters(const DecParams &p)
 void DHudpDecoder::processQueue()
 {
     while(!i_queue.isEmpty()){
-        receiveFragment(i_queue.waitForDequeue());
+        processFragment(i_queue.waitForDequeue());
     }
 
-    //do save to file
-    if(this->checkCurrentCycleBlocks()){
-        this->saveCurrentCycleBlocks();
-    }
+    //check if current cyclel got
+    if( !this->checkCurrentCycleBlocks()) return;
+
+    this->saveCurrentCycleBlocks();
 
     //check if all saved
     for(int i = 0 ; i< i_rcvBitMap.size() ; ++i){
@@ -49,7 +49,7 @@ void DHudpDecoder::processQueue()
             if(inCycle > i_rcv_cyc){
                 emit sig_needNextCycle();
             }else{
-                emit sig_correctionFragCyc(inCycle);
+                emit sig_correctionCyc(inCycle);
             }
             return;
         }
@@ -76,7 +76,7 @@ void DHudpDecoder::clearRcvBlocksCacheForCycle(quint32 cyc)
     }
 }
 
-bool DHudpDecoder::receiveFragment(const QByteArray &a)
+bool DHudpDecoder::processFragment(const QByteArray &a)
 {
     Fragment frag;
     if( 0 == frag.fromArray(a))
@@ -89,7 +89,7 @@ bool DHudpDecoder::receiveFragment(const QByteArray &a)
         ++i_wrongFragsCounter;
         if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
             i_wrongFragsCounter = 0;
-            emit sig_correctionFragCyc(i_rcv_cyc);
+            emit sig_correctionCyc(i_rcv_cyc);
         }
         return false;
     }

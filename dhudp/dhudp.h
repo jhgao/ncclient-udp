@@ -18,6 +18,7 @@ namespace nProtocUDP{
 
 static const int  WAIT_FOR_CONNECTED_TIMEOUT = 5000;
 static const int  WAIT_FOR_BYTES_WRITTEN_TIMEOUT = 5000;  //5s
+static const int QUEUE_LIMIT_SIZE = 150;
 
 class DHudp : public DataHandler
 {

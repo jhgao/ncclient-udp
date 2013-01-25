@@ -12,7 +12,7 @@ DHudp::DHudp(QObject *parent) :
 
     i_udpDataSkt = new QUdpSocket(this);    
 
-    i_queue = new DHudpRcvQueue(this);
+    i_queue = new DHudpRcvQueue(QUEUE_LIMIT_SIZE,this);
     i_procQueueDelayTimer = new QTimer(this);
     i_procQueueDelayTimer->setSingleShot(true);
     i_decoder = new DHudpDecoder(*i_queue);
@@ -22,7 +22,7 @@ DHudp::DHudp(QObject *parent) :
     connect(i_queue, SIGNAL(sig_readyRead()),//cross thread
             i_decoder, SLOT(processQueue()));
 
-    connect(i_decoder, SIGNAL(sig_correctionFragCyc(quint32)),
+    connect(i_decoder, SIGNAL(sig_correctionCyc(quint32)),
             this, SLOT(sendCmdToCyc(quint32)));
     connect(i_decoder, SIGNAL(sig_needNextCycle()),
             this, SLOT(sendCmdNext()));
@@ -282,7 +282,7 @@ bool DHudp::startListenData()
 void DHudp::enqueueIncomingData(const QByteArray &a)
 {
     i_queue->waitForEnqueue(a);
-    i_procQueueDelayTimer->start(DECODE_QUEUE_DELAY_TIMEOUT);
+    i_procQueueDelayTimer->start(PROCESS_QUEUE_DELAY_TIMEOUT);
 }
 
 }

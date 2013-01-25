@@ -15,7 +15,7 @@
 namespace nProtocUDP{
 
 static const QString RCVER_CACHE_FILE = "dhudp.rcvcache";
-static const int DECODE_QUEUE_DELAY_TIMEOUT = 150;
+static const int PROCESS_QUEUE_DELAY_TIMEOUT = 150;
 static const int WRONG_FRAGS_TOLERATION = ((ENC_BLOCK_SIZE)/(FRAGMENT_SIZE) +1);
 
 class DHudpDecoder : public QObject
@@ -26,7 +26,7 @@ public:
     void setDecodeParameters(const DecParams&);
     
 signals:
-    void sig_correctionFragCyc(quint32);
+    void sig_correctionCyc(quint32);
     void sig_needNextCycle();
     void sig_fullFileSaved();
 
@@ -38,7 +38,7 @@ public slots:
 private:
     void initRcvBitMapFromBlocksNum(quint64 bn = 0);
     void clearRcvBlocksCacheForCycle(quint32 cyc);
-    bool receiveFragment(const QByteArray&);
+    bool processFragment(const QByteArray&);
     bool checkCurrentCycleBlocks();
     bool saveCurrentCycleBlocks();
     void toCycle(quint32);

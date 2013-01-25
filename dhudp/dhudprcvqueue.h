@@ -8,13 +8,12 @@
 
 namespace nProtocUDP{
 
-static const int QUEUE_LIMIT_SIZE = 500;
-
 class DHudpRcvQueue : public QObject
 {
     Q_OBJECT
 public:
-    explicit DHudpRcvQueue(QObject *parent = 0);
+    explicit DHudpRcvQueue(const int triggerLimit = 500,
+                           QObject *parent = 0);
     QByteArray waitForDequeue();
     void waitForEnqueue(const QByteArray&);
     bool isEmpty()const;
@@ -25,6 +24,7 @@ public slots:
 private:
     QQueue<QByteArray> i_queue;
     QMutex i_mutex;
+    const int i_triggerLimit;
 };
 }//namespace nProtocUDP
 

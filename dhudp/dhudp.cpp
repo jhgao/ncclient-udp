@@ -131,7 +131,7 @@ void DHudp::onCmdSktReadyRead()
             processCMD(p);
             break;
         case PTYPE_DATA:
-            qDebug() << "TODO: data on cmd skt";
+            qDebug() << "Err: data on cmd skt";
             break;
         default:
             qDebug() << "\t unknown packet type";
@@ -191,7 +191,7 @@ void DHudp::onIncomingTcpCmdConnection()
     if( i_tcpCmdServer->hasPendingConnections()){
         i_tcpCmdSkt = i_tcpCmdServer->nextPendingConnection();
         qDebug() << "DHudp::onIncomingTcpCmdConnection()";
-        //TODO check incoming identity
+        //TODO future: check incoming identity
         connect(i_tcpCmdSkt, SIGNAL(readyRead()),
                 this, SLOT(onCmdSktReadyRead()));
         connect(i_tcpCmdSkt, SIGNAL(disconnected()),
@@ -240,7 +240,17 @@ void DHudp::processCMD(const Packet &p)
         }
         break;
     case QUE_DATA_PORT:
-        psCmdDbg("QUE_DATA_PORT","TODO");
+        psCmdDbg("QUE_DATA_PORT");
+        if(i_udpDataSkt->isOpen()){
+            QByteArray arg;
+            QDataStream out(&arg, QIODevice::WriteOnly);
+            out.setVersion(QDataStream::Qt_4_8);
+            out << i_ipAddress;
+            out << (quint16) i_udpDataSkt->localPort();
+            this->writeOutCmd(ACK_DATA_PORT,arg);
+        }else{
+            qDebug() << "\t data port is requested when not ready";
+        }
         break;
     default:
         psCmdDbg(QString::number(p.getCMD()) + "?UNKNOWN" );
@@ -258,11 +268,6 @@ QString DHudp::psCmdDbg(QString cmd, QString arg)
 
     qDebug() << dbg;
     return dbg;
-}
-
-void DHudp::processData(const Packet &p)
-{
-    qDebug() << "TODO:  DHudp::processData() ";
 }
 
 bool DHudp::startListenData()

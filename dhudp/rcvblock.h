@@ -12,11 +12,7 @@ public:
     RcvBlock(quint16 acyc, quint8 ablockNo, quint16 tgtSize = 10346);
 
     quint16 assembleFragment(Fragment &f);
-    quint16 absenceFragmentsCount();
     bool isComplete();
-    bool posBefore(RcvBlock rhs);
-    bool posEqual(RcvBlock rhs);
-    bool posAfter(RcvBlock rhs);
     QString dbgString() const;
 
     quint16 tgtSize;

@@ -35,10 +35,6 @@ quint16 RcvBlock::assembleFragment(Fragment &f){
     return f.dataSize();
 }
 
-quint16 RcvBlock::absenceFragmentsCount(){
-    return (tgtSize + FRAGMENT_SIZE - 1)/FRAGMENT_SIZE - gotFrags.size();
-}
-
 bool RcvBlock::isComplete()
 {
     /*
@@ -46,23 +42,6 @@ bool RcvBlock::isComplete()
      * RcvBlock contains header bytes, its bigger than a Encoded Block Data.
      */
     return gotSize >= tgtSize;
-}
-
-bool RcvBlock::posBefore(RcvBlock rhs){
-    if(this->cyc < rhs.cyc) return true;
-    else if( this->cyc == rhs.cyc && this->blockNo < rhs.blockNo ) return true;
-    else return false;
-}
-
-bool RcvBlock::posEqual(RcvBlock rhs){
-    if(this->cyc == rhs.cyc && this->blockNo == rhs.blockNo) return true;
-    else return false;
-}
-
-bool RcvBlock::posAfter(RcvBlock rhs){
-    if(this->cyc > rhs.cyc) return true;
-    else if( this->cyc == rhs.cyc && this->blockNo > rhs.blockNo ) return true;
-    else return false;
 }
 
 QString RcvBlock::dbgString() const

@@ -8,8 +8,6 @@ static const int PACKET_SIZE = 512; //UDP datagram 512k for internet transfer, d
 
 static const int FRAGMENT_SIZE = PACKET_SIZE; // let fragments size equals to packet size
 
-static const int SEND_FRAGMENT_INTERVAL = 2; //msec
-
 static const int ENC_BLOCK_SIZE = (10*1024);  //QNCencoder
 }//namespace nProtocUDP
 #endif // CONSTS_H

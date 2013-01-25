@@ -50,7 +50,6 @@ private:
     void writeOutCmd(quint16, const QByteArray& = QByteArray());
     void processCMD(const Packet& p);
     QString psCmdDbg(QString cmd, QString arg = QString());
-    void processData(const Packet& p);
 
     bool startListenData();
     void enqueueIncomingData(const QByteArray&);

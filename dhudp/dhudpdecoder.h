@@ -40,6 +40,7 @@ private:
     void initRcvBitMapFromBlocksNum(quint64 bn = 0);
     void clearRcvBlocksCacheForCycle(quint32 cyc);
     bool processFragment(const QByteArray&);
+    void correctCycleTo(quint32);    //can be called repeatly
     bool checkCurrentCycleBlocks();
     void onGotAllCurrentCycleBlocks();
     bool saveCurrentCycleBlocks();

@@ -81,11 +81,10 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     //filter fragmets
     if( frag.cyc != i_rcv_cyc ){
         ++i_wrongFragsCounter;
-        if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
-            i_wrongFragsCounter = 0;
-            emit sig_correctionCyc(i_rcv_cyc);
-        }
+        this->correctCycleTo(i_rcv_cyc);
         return false;
+    }else{
+        i_wrongFragsCounter = 0;
     }
 
     //assemble fragment into block
@@ -108,6 +107,15 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     }
 
     return true;
+}
+
+/* Important: can be called repeatly, without side effect */
+void DHudpDecoder::correctCycleTo(quint32 cyc)
+{
+    if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
+        i_wrongFragsCounter = 0;
+        emit sig_correctionCyc(i_rcv_cyc);
+    }
 }
 
 bool DHudpDecoder::checkCurrentCycleBlocks()
@@ -138,14 +146,14 @@ void DHudpDecoder::onGotAllCurrentCycleBlocks()
 
     //check if all saved
     for(int i = 0 ; i< i_rcvBitMap.size() ; ++i){
-        if(!i_rcvBitMap.testBit(i)){    //if a block not received
-            //found its cycle
-            quint32 inCycle = (i+1) / i_params.oneCycleBlockNum;
+        if(!i_rcvBitMap.testBit(i)){    //if a block is absence
+            //found its cycle no.
+            quint32 tgtCycle = (i+1) / i_params.oneCycleBlockNum;
             //cmd server to send that cycle
-            if(inCycle > i_rcv_cyc){
+            if(tgtCycle > i_rcv_cyc){
                 emit sig_needNextCycle();
             }else{
-                emit sig_correctionCyc(inCycle);
+                this->correctCycleTo(tgtCycle);
             }
             return;
         }

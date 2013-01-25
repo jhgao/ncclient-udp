@@ -3,8 +3,7 @@
 namespace nProtocUDP{
 
 DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
-    QObject(parent),i_queue(q),
-    i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0),
+    QObject(parent),i_queue(q),i_wrongFragsCounter(0),i_rcv_cyc(0),
     i_lastCorrectionFromCyc(0),i_lastCorrectionToCyc(0)
 {
     //cache file
@@ -22,8 +21,7 @@ void DHudpDecoder::setDecodeParameters(const DecParams &p)
 {
     qDebug() << "DHudpDecoder::setDecodeParameters()";
     i_params = p;
-    i_rcvAllBlocksNum = i_params.totalEncBlocks;
-    initRcvBitMapFromBlocksNum(i_rcvAllBlocksNum);
+    initRcvBitMapFromBlocksNum(i_params.totalEncBlocks);
     //prepare for cycle 0
     this->clearRcvBlocksCacheForCycle(0);
 }
@@ -232,17 +230,17 @@ void DHudpDecoder::markSavedBlock(const RcvBlock &b)
     i_rcvBitMap.setBit(blockSN, true);
     i_gotBlockSNs.insert(blockSN);
 
-    emit sig_progressPercent(i_gotBlockSNs.size()*100/i_rcvAllBlocksNum);
+    emit sig_progressPercent(i_gotBlockSNs.size()*100/ i_params.totalEncBlocks);
 }
 
 quint32 DHudpDecoder::blockNumInCycle(quint32 cyc) const
 {
     quint32 n;
     if( cyc + 1 < i_params.totalCycleNum
-            || 0 == i_rcvAllBlocksNum % i_params.oneCycleBlockNum){
+            || 0 == i_params.totalEncBlocks % i_params.oneCycleBlockNum){
          n = i_params.oneCycleBlockNum;
     }else if( cyc +1 == i_params.totalCycleNum){
-        n = i_rcvAllBlocksNum % i_params.oneCycleBlockNum;
+        n = i_params.totalEncBlocks % i_params.oneCycleBlockNum;
     }else {
         n = 0;
     }

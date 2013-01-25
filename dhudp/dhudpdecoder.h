@@ -51,7 +51,6 @@ private:
     bool touch(QString aFilePath);
 
     DecParams i_params;
-    quint64 i_rcvAllBlocksNum;  //TODO: rename:total blocks number excepted to get
     DHudpRcvQueue& i_queue;
 
     //receiveFragment

@@ -39,6 +39,7 @@ private slots:
     void onCmdSktConnected();
     void onCmdSktReadyRead();
     void onCmdSktDisconnected();
+    void onGotFullFile();
 
     //
     void readDatagram();

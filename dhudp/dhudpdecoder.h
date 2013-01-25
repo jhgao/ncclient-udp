@@ -28,6 +28,7 @@ public:
 signals:
     void sig_correctionFragCyc(quint32);
     void sig_needNextCycle();
+    void sig_fullFileSaved();
 
     void sig_progressPercent(uint);
     void sig_savedBlockSN(quint32);
@@ -37,7 +38,7 @@ public slots:
 private:
     void initRcvBitMapFromBlocksNum(quint64 bn = 0);
     void clearRcvBlocksCacheForCycle(quint32 cyc);
-    void receiveFragment(const QByteArray&);
+    bool receiveFragment(const QByteArray&);
     bool checkCurrentCycleBlocks();
     bool saveCurrentCycleBlocks();
     void toCycle(quint32);

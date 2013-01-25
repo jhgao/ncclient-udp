@@ -26,6 +26,8 @@ DHudp::DHudp(QObject *parent) :
             this, SLOT(sendCmdToCyc(quint32)));
     connect(i_decoder, SIGNAL(sig_needNextCycle()),
             this, SLOT(sendCmdNext()));
+    connect(i_decoder, SIGNAL(sig_fullFileSaved()),
+            this, SLOT(onGotFullFile()));
     connect(i_decoder, SIGNAL(sig_progressPercent(uint)),
             this, SIGNAL(sig_progressPercent(uint)));
     connect(i_decoder, SIGNAL(sig_savedBlockSN(quint32)),
@@ -142,6 +144,12 @@ void DHudp::onCmdSktReadyRead()
 void DHudp::onCmdSktDisconnected()
 {
     qDebug() << "DHudp::onCmdSktDisconnected()";
+}
+
+void DHudp::onGotFullFile()
+{
+    qDebug() << "DHudp::onGotFullFile()";
+    this->writeOutCmd(ALA_DONE);
 }
 
 void DHudp::readDatagram()

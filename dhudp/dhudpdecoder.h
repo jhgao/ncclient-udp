@@ -36,6 +36,7 @@ public slots:
     void processQueue();
 
 private:
+    bool isParamsReady();
     void initRcvBitMapFromBlocksNum(quint64 bn = 0);
     void clearRcvBlocksCacheForCycle(quint32 cyc);
     bool processFragment(const QByteArray&);

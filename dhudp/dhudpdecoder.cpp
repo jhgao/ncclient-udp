@@ -29,9 +29,22 @@ void DHudpDecoder::setDecodeParameters(const DecParams &p)
 
 void DHudpDecoder::processQueue()
 {
+    if( !isParamsReady() ){
+        qDebug() << "DHudpDecoder::processQueue()"
+                 << "Err: parameter not ready";
+        return;
+    }
+
     while(!i_queue.isEmpty()){
         processFragment(i_queue.waitForDequeue());
     }
+}
+
+bool DHudpDecoder::isParamsReady()
+{
+    return ( 0 != i_params.oneCycleBlockNum )
+            && ( 0 != i_params.totalEncBlocks )
+            && ( 0 != i_params.totalCycleNum );
 }
 
 void DHudpDecoder::initRcvBitMapFromBlocksNum(quint64 bn)

@@ -76,10 +76,12 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     if( 0 == frag.fromArray(a))
         return false;
 
-    qDebug() << "DHudpDecoder::processFragment()" << frag.dbgString();
+//    qDebug() << "DHudpDecoder::processFragment()" << frag.dbgString();
 
     //filter fragmets
     if( frag.cyc != i_rcv_cyc ){
+        qDebug() << "DHudpDecoder::processFragment()"
+                 << "wrong frag " << frag.dbgString();
         ++i_wrongFragsCounter;
         this->correctCycleTo(i_rcv_cyc);
         return false;
@@ -151,8 +153,10 @@ void DHudpDecoder::onGotAllCurrentCycleBlocks()
             quint32 tgtCycle = (i+1) / i_params.oneCycleBlockNum;
             //cmd server to send that cycle
             if(tgtCycle > i_rcv_cyc){
+                this->toCycle(tgtCycle);
                 emit sig_needNextCycle();
             }else{
+                this->toCycle(tgtCycle);
                 this->correctCycleTo(tgtCycle);
             }
             return;
@@ -161,6 +165,8 @@ void DHudpDecoder::onGotAllCurrentCycleBlocks()
 
     //all file is saved
     emit sig_fullFileSaved();
+
+    i_queue.waitForClear();
 }
 
 bool DHudpDecoder::saveCurrentCycleBlocks()

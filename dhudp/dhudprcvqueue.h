@@ -16,6 +16,7 @@ public:
                            QObject *parent = 0);
     QByteArray waitForDequeue();
     void waitForEnqueue(const QByteArray&);
+    void waitForClear();
     bool isEmpty()const;
     int	size () const;
 signals:
@@ -23,7 +24,7 @@ signals:
 public slots:
 private:
     QQueue<QByteArray> i_queue;
-    QMutex i_mutex;
+    QMutex* i_mutex;
     const int i_triggerLimit;
 };
 }//namespace nProtocUDP

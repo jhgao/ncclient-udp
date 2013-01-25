@@ -149,7 +149,7 @@ void DHudp::onCmdSktDisconnected()
 void DHudp::onGotFullFile()
 {
     qDebug() << "DHudp::onGotFullFile()";
-//    i_udpDataSkt->disconnectFromHost();
+    i_udpDataSkt->disconnectFromHost();
     this->writeOutCmd(ALA_DONE);
 }
 

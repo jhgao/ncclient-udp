@@ -4,7 +4,8 @@ namespace nProtocUDP{
 
 DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
     QObject(parent),i_queue(q),
-    i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0)
+    i_wrongFragsCounter(0),i_rcv_cyc(0),i_rcvAllBlocksNum(0),
+    i_lastCorrectionFromCyc(0),i_lastCorrectionToCyc(0)
 {
     //cache file
     i_rcvCacheFileInfo.setFile(RCVER_CACHE_FILE);
@@ -81,7 +82,8 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     //filter fragmets
     if( frag.cyc != i_rcv_cyc ){
         qDebug() << "DHudpDecoder::processFragment()"
-                 << "wrong frag " << frag.dbgString();
+                 << "wrong frag " << frag.dbgString()
+                 << "\t\t counter=" << i_wrongFragsCounter;
         ++i_wrongFragsCounter;
         this->correctCycleTo(i_rcv_cyc);
         return false;
@@ -111,13 +113,22 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     return true;
 }
 
-/* Important: can be called repeatly, without side effect */
+/* Important: can be called repeatly, without side effect
+ * this func is used to avoid massive sending CON_CHG_CYC
+ */
 void DHudpDecoder::correctCycleTo(quint32 cyc)
 {
+    if( i_rcv_cyc == i_lastCorrectionFromCyc
+            &&  cyc == i_lastCorrectionToCyc)
+        return;
+
     if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
         i_wrongFragsCounter = 0;
         emit sig_correctionCyc(i_rcv_cyc);
     }
+
+    i_lastCorrectionFromCyc = i_rcv_cyc;
+    i_lastCorrectionToCyc = cyc;
 }
 
 bool DHudpDecoder::checkCurrentCycleBlocks()

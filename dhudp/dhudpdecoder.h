@@ -64,6 +64,11 @@ private:
 
     //cache file
     QFileInfo   i_rcvCacheFileInfo;
+
+    //reduce sending cycle correction cmd
+    quint32 i_lastCorrectionFromCyc;
+    quint32 i_lastCorrectionToCyc;
+
 };
 }//namespace nProtocUDP
 

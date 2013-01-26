@@ -1,3 +1,5 @@
+/* receive fragments and decode  */
+
 #ifndef DHUDPDECODER_H
 #define DHUDPDECODER_H
 
@@ -15,6 +17,7 @@
 namespace nProtocUDP{
 
 static const QString RCVER_CACHE_FILE = "dhudp.rcvcache";
+static const QString DECODE_TO_RAW_FILE = "dhudp.rcvcache.raw";
 static const int PROCESS_QUEUE_DELAY_TIMEOUT = 150;
 static const int WRONG_FRAGS_TOLERATION = ((ENC_BLOCK_SIZE)/(FRAGMENT_SIZE) +1);
 
@@ -49,6 +52,8 @@ private:
 
     quint32 blockNumInCycle(quint32) const;
     bool touch(QString aFilePath);
+
+    bool testDecode();
 
     DecParams i_params;
     DHudpRcvQueue& i_queue;

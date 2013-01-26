@@ -65,7 +65,10 @@ void DHudpDecoder::clearRcvBlocksCacheForCycle(quint32 cyc)
     }
 
     for(int i = 0; i< blockNum; ++i){
-        i_rcvCycleBlocks.append(RcvBlock(cyc,i));   //TODO RcvBlock tgtSize
+        i_rcvCycleBlocks.append(
+                    RcvBlock(cyc,
+                             i,
+                             (i_params.inBlockCoeffLen + i_params.inBlockDataSize)));
     }
 }
 
@@ -175,6 +178,10 @@ void DHudpDecoder::onGotAllCurrentCycleBlocks()
     //all file is saved
     emit sig_fullFileSaved();
 
+    if(! this->testDecode()){
+        qDebug() << "[DHudp] test decode failed";
+    }
+
     i_queue.waitForClear();
 }
 
@@ -255,6 +262,68 @@ bool DHudpDecoder::touch(QString aFilePath)
     bool rst = f.open(QIODevice::ReadWrite);
     f.close();
     return rst;
+}
+
+bool DHudpDecoder::testDecode()
+{
+    qDebug() << "DHudpDecoder::testDecode()";
+    QFile encFile(RCVER_CACHE_FILE);
+    QFile rawFile(DECODE_TO_RAW_FILE);
+
+    if(!encFile.open(QIODevice::ReadOnly)){
+        qDebug() << "\t error open encoded file";
+        return false;
+    }
+
+    rawFile.remove();
+    if( !rawFile.exists() && !this->touch(rawFile.fileName())){
+        qDebug() << "\t failed create tgt raw file";
+        return false;
+    }
+
+    if(!rawFile.open(QIODevice::ReadWrite)){
+        qDebug() << "\t error open tgt raw file to write";
+        return false;
+    }
+
+    quint32 coeffLen = i_params.inBlockCoeffLen;
+    quint32 dataLen = i_params.inBlockDataSize;
+    quint32 decodeUintSize = coeffLen + dataLen;   //uint[coeff | data]
+
+    quint64 rawFileSize = i_params.rawFileLength;
+    quint64 totalUnitsNum = i_params.totalEncBlocks;
+    int wroteOutBytes = 0;
+
+    for(quint64 i = 0 ; i< totalUnitsNum; ++i){
+        QByteArray unit = encFile.read(decodeUintSize);
+        if(unit.size() != decodeUintSize){
+            qDebug() << "\t error read unit" << i;
+            encFile.close();
+            rawFile.close();
+            return false;
+        }
+
+        //TODO: decode
+        QByteArray rawBlock = unit.right(dataLen);
+
+        //write out
+        if( wroteOutBytes + rawBlock.size() > rawFileSize)
+            rawBlock.resize(rawFileSize - wroteOutBytes);   //last block
+
+        wroteOutBytes += rawFile.write(rawBlock);
+
+    }
+    if(wroteOutBytes == rawFileSize){
+        encFile.close();
+        rawFile.close();
+        return true;
+    }else {
+        qDebug() << "\t wrong raw file size";
+        encFile.close();
+        rawFile.close();
+        return false;
+    }
+
 }
 
 }

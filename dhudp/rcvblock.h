@@ -9,7 +9,7 @@ namespace nProtocUDP{
 class RcvBlock
 {
 public:
-    RcvBlock(quint16 acyc, quint8 ablockNo, quint16 tgtSize = 10346);
+    RcvBlock(quint16 acyc, quint8 ablockNo, quint16 tgtSize);
 
     quint16 assembleFragment(Fragment &f);
     bool isComplete();

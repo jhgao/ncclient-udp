@@ -260,7 +260,7 @@ void DHudp::processCMD(const Packet &p)
 QString DHudp::psCmdDbg(QString cmd, QString arg)
 {
     QString dbg;
-    dbg = " [DHtcp] cmd " + QString::number(i_cmd_counter);
+    dbg = " [DHudp] cmd " + QString::number(i_cmd_counter);
     dbg += " [" + cmd + "] ";
     dbg += arg;
     dbg += "\tfrom " + i_tcpCmdSkt->peerAddress().toString()

@@ -20,13 +20,14 @@ static const QString RCVER_CACHE_FILE = "dhudp.rcvcache";
 static const QString DECODE_TO_RAW_FILE = "dhudp.rcvcache.raw";
 static const int PROCESS_QUEUE_DELAY_TIMEOUT = 150;
 static const int WRONG_FRAGS_TOLERATION = ((ENC_BLOCK_SIZE)/(FRAGMENT_SIZE) +1);
+static const int CORRECTION_CYC_TIMES_LIMIT = 500;
 
 class DHudpDecoder : public QObject
 {
     Q_OBJECT
 public:
     explicit DHudpDecoder(DHudpRcvQueue &, QObject *parent = 0);
-    void setDecodeParameters(const DecParams&);
+    void resetDecodeParameters(const DecParams&);
     
 signals:
     void sig_correctionCyc(quint32);
@@ -72,6 +73,7 @@ private:
     //reduce sending cycle correction cmd
     quint32 i_lastCorrectionFromCyc;
     quint32 i_lastCorrectionToCyc;
+    int i_correctionCycCounter;
 
 };
 }//namespace nProtocUDP

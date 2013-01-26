@@ -4,7 +4,8 @@ namespace nProtocUDP{
 
 DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
     QObject(parent),i_queue(q),i_wrongFragsCounter(0),i_rcv_cyc(0),
-    i_lastCorrectionFromCyc(0),i_lastCorrectionToCyc(0)
+    i_lastCorrectionFromCyc(0),i_lastCorrectionToCyc(0),
+    i_correctionCycCounter(0)
 {
     //cache file
     i_rcvCacheFileInfo.setFile(RCVER_CACHE_FILE);
@@ -17,12 +18,13 @@ DHudpDecoder::DHudpDecoder(DHudpRcvQueue &q, QObject *parent) :
     this->touch(i_rcvCacheFileInfo.fileName() + ".raw");
 }
 
-void DHudpDecoder::setDecodeParameters(const DecParams &p)
+void DHudpDecoder::resetDecodeParameters(const DecParams &p)
 {
     qDebug() << "DHudpDecoder::setDecodeParameters()";
     i_params = p;
     initRcvBitMapFromBlocksNum(i_params.totalEncBlocks);
     //prepare for cycle 0
+    i_rcv_cyc = 0;
     this->clearRcvBlocksCacheForCycle(0);
 }
 
@@ -83,13 +85,15 @@ bool DHudpDecoder::processFragment(const QByteArray &a)
     //filter fragmets
     if( frag.cyc != i_rcv_cyc ){
         qDebug() << "DHudpDecoder::processFragment()"
-                 << "wrong frag " << frag.dbgString()
+                 << "wrong frag of cyc " << frag.cyc
+                 << " / rcv_cyc " << i_rcv_cyc
                  << "\t\t counter=" << i_wrongFragsCounter;
         ++i_wrongFragsCounter;
         this->correctCycleTo(i_rcv_cyc);
         return false;
     }else{
         i_wrongFragsCounter = 0;
+        i_correctionCycCounter = 0;
     }
 
     //assemble fragment into block
@@ -126,6 +130,13 @@ void DHudpDecoder::correctCycleTo(quint32 cyc)
     if( i_wrongFragsCounter > WRONG_FRAGS_TOLERATION){
         i_wrongFragsCounter = 0;
         emit sig_correctionCyc(i_rcv_cyc);
+        i_correctionCycCounter++;
+    }
+
+    if( i_correctionCycCounter > CORRECTION_CYC_TIMES_LIMIT){
+        qDebug() << "DHudpDecoder::correctCycleTo()"
+                 << cyc << "/" << i_rcv_cyc
+                 << "\t correction failed, sth. maybe wrong!!!";
     }
 
     i_lastCorrectionFromCyc = i_rcv_cyc;

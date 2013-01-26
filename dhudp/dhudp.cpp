@@ -226,7 +226,7 @@ void DHudp::processCMD(const Packet &p)
             //prepare decoder
             DecParams param;
             param.fromArray(p.getCMDarg());
-            i_decoder->setDecodeParameters(param);
+            i_decoder->resetDecodeParameters(param);
             qDebug() << param.dbgString();
 
             //send start
